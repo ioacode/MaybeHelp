@@ -1,0 +1,81 @@
+import 'dart:html';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert'; 
+
+//definition URL
+class URLS {
+  static const String BASE_URL_LOCALONE = 'http://127.0.0.12:3030';
+  static const String BASE_URL_LOCALTWO = 'http://127.0.0.21:3030';
+  static const String BASE_URL_LOCALTHRE = 'http://127.0.0.16:3030';
+}
+
+//main class for decl
+class ApiService{
+
+  //management endpoint
+  static Endpoint(String endpoint) {
+    switch (endpoint) {
+      case "login":
+        return "${URLS.BASE_URL_LOCAL}/user/login";
+      case "register":
+        return "${URLS.BASE_URL_LOCAL}/user/register";
+      case "forgetPassword":
+        return "${URLS.BASE_URL_LOCAL}/user/forgetpassword";
+      case "":
+        return "${URLS.BASE_URL}";
+      default:
+        break;
+    }
+  }
+  
+  //add header 
+  static header(String typeheader) { 
+    switch (typeheader){
+      case "private":
+        return {HttpHeaders.authorizationHeader: "input header in here"};
+      default:
+        return "";
+    } 
+  }
+
+  //global request serive
+  static requestData (String endpoint, String typeheader, requestbody){
+    return http.post(Endpoint(endpoint), headers: header(typeheader), body: requestbody);
+  }
+
+  //static response
+  static EndpointService(String endpoint, requestdata ) async{
+    final response = await requestData(endpoint, "", requestdata);
+    return response.body;
+  }
+}
+
+//Example for hit Api implementation in Login Form:
+void _login() {
+    final form = formKey.currentState;
+    if (form.validate()) {
+      form.save();
+    }
+    var requestLogin = {"email": _email, "password": _password};
+    var api = ApiService.EndpointService("login", requestLogin);
+    
+    api.then((response) {
+      final Map parsed = json.decode(response);
+      userlogin login = userlogin();
+      login.Username = parsed['data']['Username'];
+      login.email = parsed['data']['email'];
+      apiSession.save('login', login);
+
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => HomePage()));
+          
+      print("success");
+    }, onError: (error) {
+      print(error.toString());
+    });
+  }
+
+
+ 
